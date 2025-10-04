@@ -1,7 +1,7 @@
 (function () {
   const defaultOptions = {
     selector: ".text-anim",
-    type: "fade",           // тип анимации
+    type: "scale",           // тип анимации
     duration: "0.9s",
     delayStart: 1.1,
     stagger: 0.1,
@@ -54,4 +54,5 @@
 
   window.TextAnim = { init, animate: animateText };
 })();
+
 

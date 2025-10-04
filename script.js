@@ -1,7 +1,7 @@
 (function () {
   const defaultOptions = {
     selector: ".text-anim",
-    type: "scale",           // тип анимации
+    type: "fade",           // fade, slide, scale, rotate
     duration: "0.9s",
     delayStart: 1.1,
     stagger: 0.1,
@@ -25,11 +25,9 @@
       from: { opacity: "0", transform: "rotate(-90deg)" },
       to:   { opacity: "1", transform: "rotate(0deg)" }
     }
-    // можно добавить свои
   };
 
-  const animateText = (el, options = {}) => {
-    const config = { ...defaultOptions, ...options };
+  const animateText = (el, config) => {
     const preset = animationPresets[config.type] || animationPresets.fade;
     const words = el.textContent.trim().split(/\s+/);
     el.textContent = "";
@@ -54,5 +52,6 @@
 
   window.TextAnim = { init, animate: animateText };
 })();
+
 
 

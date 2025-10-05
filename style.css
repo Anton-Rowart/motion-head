@@ -18,7 +18,7 @@
 
 			.motion-head-perspective {
 				display: inline-block;
-				transform: rotateX(70px);
+				transform: rotateX(70deg);
 				animation-name: motion-perspective-up;
 				animation-fill-mode: forwards;
 				animation-timing-function: cubic-bezier(0.5, 1, 0.89, 1);
@@ -53,4 +53,5 @@
 					transform: translateX(0px);
 				}
 			}
+
 

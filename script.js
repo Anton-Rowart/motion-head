@@ -1,57 +1,62 @@
-(function () {
-  const defaultOptions = {
-    selector: ".text-anim",
-    type: "fade",           // fade, slide, scale, rotate
-    duration: "0.9s",
-    delayStart: 1.1,
-    stagger: 0.1,
-    easing: "cubic-bezier(0.5, 1, 0.89, 1)"
-  };
+			(function () {
+				const defaultOptions = {
+					selector: "",
+					type: "fade",
+					duration: 1.2,
+					delay: 1.1,
+					stager: 0.1,
+					easing: "cubic-bezier(0.5, 1, 0.89, 1)",
+					trigger: 0.6,
+				};
 
-  const animationPresets = {
-    fade: {
-      from: { opacity: "0", filter: "blur(10px)" },
-      to:   { opacity: "1", filter: "blur(0)" }
-    },
-    slide: {
-      from: { opacity: "0", transform: "translateY(30px)" },
-      to:   { opacity: "1", transform: "translateY(0)" }
-    },
-    scale: {
-      from: { opacity: "0", transform: "scale(0.8)" },
-      to:   { opacity: "1", transform: "scale(1)" }
-    },
-    rotate: {
-      from: { opacity: "0", transform: "rotate(-90deg)" },
-      to:   { opacity: "1", transform: "rotate(0deg)" }
-    }
-  };
+				const animateText = (el, config) => {
+					const words = el.textContent.trim().split(/\s+/);
+					el.textContent = "";
+					el.style.visibility = "visible";
 
-  const animateText = (el, config) => {
-    const preset = animationPresets[config.type] || animationPresets.fade;
-    const words = el.textContent.trim().split(/\s+/);
-    el.textContent = "";
+					words.forEach((word, i) => {
+						const span = document.createElement("span");
+						span.textContent = word;
+						span.className = `motion-head-${config.type}`;
+						span.style.animationDelay = `${(config.delay + i * config.stager).toFixed(
+							2
+						)}s`;
+						span.style.animationDuration = `${config.duration}s`;
+						span.style.animationTimingFunction = config.easing;
+						el.appendChild(span);
+						el.appendChild(document.createTextNode(" "));
+					});
+				};
 
-    words.forEach((word, i) => {
-      const span = document.createElement("span");
-      span.textContent = word;
-      span.style.display = "inline-block";
-      Object.assign(span.style, preset.from);
-      span.style.animation = `textanim-${config.type} ${config.duration} ${config.easing} ${(
-        config.delayStart + i * config.stagger
-      ).toFixed(2)}s forwards`;
-      el.appendChild(span);
-      el.appendChild(document.createTextNode(" "));
-    });
-  };
+				const init = (options = {}) => {
+					const config = { ...defaultOptions, ...options };
+					const elements = Array.from(document.querySelectorAll(config.selector));
 
-  const init = (options = {}) => {
-    const config = { ...defaultOptions, ...options };
-    document.querySelectorAll(config.selector).forEach(el => animateText(el, config));
-  };
+					elements.forEach((el) => {
+						if (!el.__motionPrepared) {
+							el.style.visibility = "hidden";
+							el.__motionPrepared = true;
+						}
+					});
 
-  window.TextAnim = { init, animate: animateText };
-})();
+					const checkVisibility = () => {
+						const triggerY = window.innerHeight * config.trigger;
 
+						elements.forEach((el) => {
+							if (el.__motionTriggered) return;
 
+							const rect = el.getBoundingClientRect();
+							if (rect.top < triggerY) {
+								el.__motionTriggered = true;
+								animateText(el, config);
+							}
+						});
+					};
 
+					window.addEventListener("scroll", checkVisibility);
+					window.addEventListener("resize", checkVisibility);
+					checkVisibility(); // запуск при загрузке
+				};
+
+				window.MotionHead = { init };
+			})();

@@ -1,57 +1,59 @@
-			.motion-head-fade {
-				display: inline-block;
-				opacity: 0;
-				filter: blur(10px);
-				animation-name: motion-head-fade;
-				animation-fill-mode: forwards;
-				animation-timing-function: cubic-bezier(0.5, 1, 0.89, 1);
-			}
+.motion-head-blur {
+	display: inline-block;
+	opacity: 0;
+	filter: blur(10px);
+	animation-name: motion-head-blur;
+	animation-fill-mode: forwards;
+	animation-timing-function: cubic-bezier(0.5, 1, 0.89, 1);
+}
 
-			.motion-head-slide {
-				display: inline-block;
-				opacity: 0;
-				transform: translateX(80px);
-				animation-name: motion-head-up;
-				animation-fill-mode: forwards;
-				animation-timing-function: cubic-bezier(0.5, 1, 0.89, 1);
-			}
+@keyframes motion-head-blur {
+	to {
+		opacity: 1;
+		filter: blur(0);
+	}
+}
 
-			.motion-head-perspective {
-				display: inline-block;
-				transform: rotateX(70deg);
-				animation-name: motion-perspective-up;
-				animation-fill-mode: forwards;
-				animation-timing-function: cubic-bezier(0.5, 1, 0.89, 1);
-			}
+.motion-head-slide {
+	display: inline-block;
+	opacity: 0;
+	transform: translateX(80px);
+	animation-name: motion-head-up;
+	animation-fill-mode: forwards;
+	animation-timing-function: cubic-bezier(0.5, 1, 0.89, 1);
+}
 
-			@keyframes motion-perspective-up {
-				to {
-					transform: rotateX(0deg);
-				}
-			}
+@keyframes motion-head-right {
+	0% {
+		opacity: 0;
+		transform: translateX(80px);
+	}
 
-			@keyframes motion-head-fade {
-				to {
-					opacity: 1;
-					filter: blur(0);
-				}
-			}
+	50% {
+		opacity: 0.7;
+		transform: translateX(-20px);
+	}
 
-			@keyframes motion-head-up {
-				0% {
-					opacity: 0;
-					transform: translateX(80px);
-				}
+	100% {
+		opacity: 1;
+		transform: translateX(0px);
+	}
+}
 
-				50% {
-					opacity: 0.7;
-					transform: translateX(-20px);
-				}
+.motion-head-elastic {
+	display: inline-block;
+	transform: rotateX(-90deg) scale(1);
+	animation-name: motion-head-elastic;
+	animation-fill-mode: forwards;
+	animation-timing-function: cubic-bezier(0.5, 1, 0.89, 1);
+}
 
-				100% {
-					opacity: 1;
-					transform: translateX(0px);
-				}
-			}
+@keyframes motion-head-elastic {
+	50% {
+		transform: rotateX(20deg) scale(1.1);
+	}
 
-
+	to {
+		transform: rotateX(0deg) scale(1);
+	}
+}

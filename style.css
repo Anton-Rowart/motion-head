@@ -16,6 +16,20 @@
 				animation-timing-function: cubic-bezier(0.5, 1, 0.89, 1);
 			}
 
+			.motion-head-perspective {
+				display: inline-block;
+				transform: rotateX(70px);
+				animation-name: motion-perspective-up;
+				animation-fill-mode: forwards;
+				animation-timing-function: cubic-bezier(0.5, 1, 0.89, 1);
+			}
+
+			@keyframes motion-perspective-up {
+				to {
+					transform: rotateX(0deg);
+				}
+			}
+
 			@keyframes motion-head-fade {
 				to {
 					opacity: 1;
@@ -39,3 +53,4 @@
 					transform: translateX(0px);
 				}
 			}
+

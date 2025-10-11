@@ -13,56 +13,75 @@
 
 		const animateText = (el, config) => {
 			const mode = letterTypes.includes(config.type) ? "letter" : "word";
-
-			let units;
-
-			if (mode !== "letter") {
-				units = el.textContent.trim().split(/\s+/);
-			} else {
-				units = Array.from(el.textContent); // без .trim() — чтобы сохранить пробелы
-			}
-
+			const rawText = el.textContent.trim();
 			el.textContent = "";
 			el.style.visibility = "visible";
 
-			units.forEach((char, i) => {
-				const span = document.createElement("span");
+			const units = rawText.match(/\S+|\s+/g) || [];
+			let globalIndex = 0;
 
-				// если это пробел — обрабатываем отдельно
-				if (mode === "letter" && char === " ") {
-					span.className = "motion-space";
-					span.textContent = "\u00A0"; // неразрывный пробел
-					span.style.width = "0.4em"; // или auto
-					el.appendChild(span);
-					return;
+			for (let i = 0; i < units.length; i++) {
+				const unit = units[i];
+				const nextIsSpace = /^\s+$/.test(units[i + 1] || "");
+
+				if (/^\s+$/.test(unit)) {
+					// пропускаем — пробел будет вставлен внутрь следующего слова
+					continue;
 				}
-
-				span.textContent = char;
-				span.className = `motion-head-${config.type}`;
-				span.style.animationDelay = `${(config.delay + i * config.stager).toFixed(
-					2
-				)}s`;
-				span.style.animationDuration = `${config.duration}s`;
-				span.style.animationTimingFunction = config.easing;
 
 				if (mode === "letter") {
-					el.style.overflow = "hidden";
-					span.setAttribute("data-text", char);
-					span.style.setProperty(
-						"--delay",
-						`${(config.delay + i * config.stager).toFixed(2)}s`
-					);
-					span.style.setProperty("--duration", `${config.duration}s`);
-					span.style.setProperty("--easing", config.easing);
-				}
+					const wordWrapper = document.createElement("span");
+					wordWrapper.className = "motion-word";
+					wordWrapper.style.whiteSpace = "nowrap";
+					wordWrapper.style.display = "inline-block";
 
-				el.appendChild(span);
+					Array.from(unit).forEach((char) => {
+						const span = document.createElement("span");
+						span.textContent = char;
+						span.className = `motion-head-${config.type}`;
+						span.style.animationDelay = `${(
+							config.delay +
+							globalIndex * config.stager
+						).toFixed(2)}s`;
+						span.style.animationDuration = `${config.duration}s`;
+						span.style.animationTimingFunction = config.easing;
+						span.setAttribute("data-text", char);
+						span.style.setProperty(
+							"--delay",
+							`${(config.delay + globalIndex * config.stager).toFixed(2)}s`
+						);
+						span.style.setProperty("--duration", `${config.duration}s`);
+						span.style.setProperty("--easing", config.easing);
+						span.style.display = "inline-block";
+						wordWrapper.appendChild(span);
+						globalIndex++;
+					});
 
-				// только для разбивки по словам — добавляем пробел
-				if (mode !== "letter") {
-					el.appendChild(document.createTextNode(" "));
+					if (nextIsSpace) {
+						const space = document.createElement("span");
+						space.className = "motion-space";
+						space.textContent = "\u00A0";
+						space.style.display = "inline-block";
+						space.style.width = "0.4em";
+						wordWrapper.appendChild(space);
+					}
+
+					el.appendChild(wordWrapper);
+				} else {
+					const span = document.createElement("span");
+					span.textContent = unit + (nextIsSpace ? "\u00A0" : "");
+					span.className = `motion-head-${config.type}`;
+					span.style.animationDelay = `${(
+						config.delay +
+						globalIndex * config.stager
+					).toFixed(2)}s`;
+					span.style.animationDuration = `${config.duration}s`;
+					span.style.animationTimingFunction = config.easing;
+					span.style.display = "inline-block";
+					el.appendChild(span);
+					globalIndex++;
 				}
-			});
+			}
 		};
 
 		const init = (options = {}) => {

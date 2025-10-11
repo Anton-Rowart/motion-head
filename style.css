@@ -6,6 +6,12 @@
 		backface-visibility: hidden;
 	}
 
+	.motion-word {
+		display: inline-block;
+		white-space: nowrap;
+		max-width: 100%;
+	}
+
 	.motion-head-opacity::after {
 		content: attr(data-text);
 		width: 100%;
@@ -149,10 +155,4 @@
 		to {
 			transform: rotateX(0deg);
 		}
-	}
-
-	.motion-space {
-		display: inline-block;
-		width: 0.4em;
-		opacity: 0.2; /* или 1, если хочешь видимый пробел */
 	}

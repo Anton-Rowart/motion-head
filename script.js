@@ -3,52 +3,88 @@
 			selector: "",
 			type: "blur",
 			duration: 1.2,
-			delay: 1.1,
-			stager: 0.1,
+			delay: 0.1,
+			stager: 0.05,
 			easing: "cubic-bezier(0.5, 1, 0.89, 1)",
 			trigger: 0.6,
 		};
 
 		const letterTypes = ["cubic", "elastic", "opacity"];
 
-		const animateText = (el, config) => {
-			const mode = letterTypes.includes(config.type) ? "letter" : "word";
-			const html = el.innerHTML
-				.replace(/&nbsp;/g, "\u00A0")
-				.replace(/<[^>]*>/g, "")
-				.trim();
-			el.textContent = "";
-			el.style.visibility = "visible";
+		// --- Функция для корректного разделения текста на юниты ---
+		function splitUnits(el) {
+			let html = el.innerHTML;
 
-			const rawUnits = html.split(/(\u00A0|\s+)/g).filter(Boolean);
+			// Заменяем &nbsp; на символ \u00A0
+			html = html.replace(/&nbsp;/g, "\u00A0");
+			// Убираем все теги кроме <br>
+			html = html.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "");
+			// Переводы строк → пробел, несколько пробелов → один
+			html = html
+				.replace(/\r\n|\r|\n+/g, " ")
+				.replace(/[ \t\f\v]+/g, " ")
+				.trim(); // Убираем пробелы в начале и конце
+
+			const raw = html.split(/(\s+|\u00A0)/g).filter(Boolean);
 			const units = [];
 
-			for (let i = 0; i < rawUnits.length; i++) {
-				const current = rawUnits[i];
-				const next = rawUnits[i + 1];
+			for (let i = 0; i < raw.length; i++) {
+				const token = raw[i];
 
-				if (next === "\u00A0" && rawUnits[i + 2]) {
-					units.push(current + "\u00A0" + rawUnits[i + 2]);
-					i += 2;
+				// обычный пробел (но не \u00A0)
+				if (/^[ \t\f\v]+$/.test(token)) {
+					// Не добавляем пробел в начале строки
+					if (units.length === 0) continue;
+					// Не добавляем повторяющиеся пробелы
+					if (units[units.length - 1] === " ") continue;
+					units.push(" ");
 					continue;
 				}
 
-				if (/^\s+$/.test(current)) {
-					units.push("\u00A0");
+				// склейка по \u00A0 — ищем предыдущий и следующий токен, игнорируем обычные пробелы
+				if (token === "\u00A0") {
+					const prev = units.pop();
+					let j = i + 1;
+					// Пропускаем обычные пробелы после \u00A0
+					while (j < raw.length && /^[ \t\f\v]+$/.test(raw[j])) j++;
+					const next = raw[j];
+					if (prev && next) {
+						// Склеиваем предыдущее слово, \u00A0 и следующее слово
+						units.push(prev + "\u00A0" + next);
+						i = j; // Пропускаем обработанные токены
+					} else if (prev) {
+						// Если нет следующего слова, возвращаем предыдущее
+						units.push(prev);
+					}
 					continue;
 				}
 
-				units.push(current);
+				// обычное слово
+				units.push(token);
 			}
+
+			// удаляем конечный пробел
+			if (units.length && units[units.length - 1] === " ") units.pop();
+
+			return units;
+		}
+
+		// --- Основная функция анимации ---
+		const animateText = (el, config) => {
+			const mode = letterTypes.includes(config.type) ? "letter" : "word";
+			const units = splitUnits(el);
+			el.textContent = "";
+
+			// Делаем элемент видимым перед анимацией
+			el.style.visibility = "visible";
+			el.style.opacity = "100%";
 
 			let globalIndex = 0;
 
-			for (let i = 0; i < units.length; i++) {
-				const unit = units[i];
-
-				if (unit === "\u00A0") {
-					el.appendChild(document.createTextNode("\u00A0"));
-					continue;
+			units.forEach((unit) => {
+				if (unit === " ") {
+					el.appendChild(document.createTextNode(" "));
+					return;
 				}
 
 				if (mode === "letter") {
@@ -58,9 +94,15 @@
 					wordWrapper.style.display = "inline-block";
 
 					Array.from(unit).forEach((char) => {
+						if (char === " ") {
+							wordWrapper.appendChild(document.createTextNode(" "));
+							return;
+						}
+
 						const span = document.createElement("span");
 						span.textContent = char;
 						span.className = `motion-head-${config.type}`;
+						span.style.display = "inline-block";
 						span.style.animationDelay = `${(
 							config.delay +
 							globalIndex * config.stager
@@ -68,13 +110,7 @@
 						span.style.animationDuration = `${config.duration}s`;
 						span.style.animationTimingFunction = config.easing;
 						span.setAttribute("data-text", char);
-						span.style.setProperty(
-							"--delay",
-							`${(config.delay + globalIndex * config.stager).toFixed(2)}s`
-						);
-						span.style.setProperty("--duration", `${config.duration}s`);
-						span.style.setProperty("--easing", config.easing);
-						span.style.display = "inline-block";
+
 						wordWrapper.appendChild(span);
 						globalIndex++;
 					});
@@ -84,27 +120,43 @@
 					const span = document.createElement("span");
 					span.textContent = unit;
 					span.className = `motion-head-${config.type}`;
+					span.style.display = "inline-block";
 					span.style.animationDelay = `${(
 						config.delay +
 						globalIndex * config.stager
 					).toFixed(2)}s`;
 					span.style.animationDuration = `${config.duration}s`;
 					span.style.animationTimingFunction = config.easing;
-					span.style.display = "inline-block";
+
 					el.appendChild(span);
 					globalIndex++;
 				}
-			}
+			});
+
+			// Запускаем анимацию через RAF
+			requestAnimationFrame(() => {
+				const spans = el.querySelectorAll(".motion-head-" + config.type);
+				spans.forEach((span) => span.classList.add("motion-active"));
+			});
 		};
 
+		// --- Инициализация ---
 		const init = (options = {}) => {
 			const config = { ...defaultOptions, ...options };
 			const elements = Array.from(document.querySelectorAll(config.selector));
 
 			elements.forEach((el) => {
 				if (!el.__motionPrepared) {
-					el.style.visibility = "hidden";
 					el.__motionPrepared = true;
+					// Для cubic и opacity текст должен быть виден сразу
+					// Для остальных типов делаем невидимым до анимации
+					if (config.type === "cubic") {
+						el.style.visibility = "visible";
+					} else if (config.type === "opacity") {
+						el.style.opacity = "10%";
+					} else {
+						el.style.visibility = "hidden";
+					}
 				}
 			});
 

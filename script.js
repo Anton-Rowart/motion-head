@@ -13,19 +13,41 @@
 
 		const animateText = (el, config) => {
 			const mode = letterTypes.includes(config.type) ? "letter" : "word";
-			const rawText = el.textContent.trim();
+			const html = el.innerHTML
+				.replace(/&nbsp;/g, "\u00A0")
+				.replace(/<[^>]*>/g, "")
+				.trim();
 			el.textContent = "";
 			el.style.visibility = "visible";
 
-			const units = rawText.match(/\S+|\s+/g) || [];
+			const rawUnits = html.split(/(\u00A0|\s+)/g).filter(Boolean);
+			const units = [];
+
+			for (let i = 0; i < rawUnits.length; i++) {
+				const current = rawUnits[i];
+				const next = rawUnits[i + 1];
+
+				if (next === "\u00A0" && rawUnits[i + 2]) {
+					units.push(current + "\u00A0" + rawUnits[i + 2]);
+					i += 2;
+					continue;
+				}
+
+				if (/^\s+$/.test(current)) {
+					units.push("\u00A0");
+					continue;
+				}
+
+				units.push(current);
+			}
+
 			let globalIndex = 0;
 
 			for (let i = 0; i < units.length; i++) {
 				const unit = units[i];
-				const nextIsSpace = /^\s+$/.test(units[i + 1] || "");
 
-				if (/^\s+$/.test(unit)) {
-					// пропускаем — пробел будет вставлен внутрь следующего слова
+				if (unit === "\u00A0") {
+					el.appendChild(document.createTextNode("\u00A0"));
 					continue;
 				}
 
@@ -57,19 +79,10 @@
 						globalIndex++;
 					});
 
-					if (nextIsSpace) {
-						const space = document.createElement("span");
-						space.className = "motion-space";
-						space.textContent = "\u00A0";
-						space.style.display = "inline-block";
-						space.style.width = "0.4em";
-						wordWrapper.appendChild(space);
-					}
-
 					el.appendChild(wordWrapper);
 				} else {
 					const span = document.createElement("span");
-					span.textContent = unit + (nextIsSpace ? "\u00A0" : "");
+					span.textContent = unit;
 					span.className = `motion-head-${config.type}`;
 					span.style.animationDelay = `${(
 						config.delay +
@@ -111,7 +124,7 @@
 
 			window.addEventListener("scroll", checkVisibility);
 			window.addEventListener("resize", checkVisibility);
-			checkVisibility(); // запуск при загрузке
+			checkVisibility();
 		};
 
 		window.MotionHead = { init };

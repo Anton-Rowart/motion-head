@@ -1,4 +1,4 @@
-	(function () {
+(function () {
 		const defaultOptions = {
 			selector: "",
 			type: "blur",
@@ -110,7 +110,6 @@
 						span.style.animationDuration = `${config.duration}s`;
 						span.style.animationTimingFunction = config.easing;
 						span.setAttribute("data-text", char);
-
 						wordWrapper.appendChild(span);
 						globalIndex++;
 					});
@@ -154,6 +153,8 @@
 						el.style.visibility = "visible";
 					} else if (config.type === "opacity") {
 						el.style.opacity = "10%";
+						const color = getComputedStyle(el).color;
+						el.style.setProperty("--letter-color", color);
 					} else {
 						el.style.visibility = "hidden";
 					}

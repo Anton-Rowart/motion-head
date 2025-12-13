@@ -1,4 +1,4 @@
-(function () {
+	(function () {
 		const defaultOptions = {
 			selector: "",
 			type: "blur",
@@ -151,6 +151,8 @@
 					// Для остальных типов делаем невидимым до анимации
 					if (config.type === "cubic") {
 						el.style.visibility = "visible";
+						const color = getComputedStyle(el).color;
+						el.style.setProperty("--letter-color", color);
 					} else if (config.type === "opacity") {
 						el.style.opacity = "10%";
 						const color = getComputedStyle(el).color;
@@ -182,3 +184,6 @@
 
 		window.MotionHead = { init };
 	})();
+		window.MotionHead = { init };
+	})();
+

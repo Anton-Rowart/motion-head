@@ -184,6 +184,3 @@
 
 		window.MotionHead = { init };
 	})();
-		window.MotionHead = { init };
-	})();
-
